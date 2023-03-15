@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Shopping Cart</title>
+</head>
+<body>
+	<h1>Shopping Cart</h1>
+	<form>
+		<label for="item-name">Item Name:</label>
+		<input type="text" id="item-name" name="item-name">
+		<label for="item-price">Item Price:</label>
+		<input type="number" id="item-price" name="item-price">
+		<button type="button" id="add-item">Add Item</button>
+	</form>
+	<h2>Cart Summary</h2>
+	<ul id="cart-items"></ul>
+	<p id="total-price"></p>
+
+	<script>
+		// Define the Item class
+		class Item {
+			constructor(name, price) {
+				this.name = name;
+				this.price = price;
+			}
+		}
+
+		// Define the Cart class
+		class Cart {
+			constructor() {
+				this.items = [];
+			}
+
+			addItem(name, price) {
+				const item = new Item(name, price);
+				this.items.push(item);
+			}
+
+			getIterator() {
+				return new CartIterator(this);
+			}
+
+			getTotalPrice() {
+				let total = 0;
+				for (const item of this.items) {
+					total += item.price;
+				}
+				return total;
+			}
+		}
+
+		// Define the CartIterator class
+		class CartIterator {
+			constructor(cart) {
+				this.cart = cart;
+				this.current = 0;
+			}
+
+			next() {
+				if (this.current < this.cart.items.length) {
+					const item = this.cart.items[this.current];
+					this.current++;
+					return {
+						done: false,
+						value: item
+					};
+				} else {
+					return {
+						done: true
+					};
+				}
+			}
+		}
+
+		// Create a new Cart instance
+		const cart = new Cart();
+
+		// Add event listener to the "Add Item" button
+		const addItemButton = document.getElementById("add-item");
+		addItemButton.addEventListener("click", () => {
+			const itemNameInput = document.getElementById("item-name");
+			const itemPriceInput = document.getElementById("item-price");
+			const itemName = itemNameInput.value;
+			const itemPrice = parseFloat(itemPriceInput.value);
+			if (itemName && itemPrice) {
+				cart.addItem(itemName, itemPrice);
+				itemNameInput.value = "";
+				itemPriceInput.value = "";
+				displayCartSummary();
+			}
+		});
+
+		// Function to display the cart summary
+		function displayCartSummary() {
+			const cartItemsList = document.getElementById("cart-items");
+			cartItemsList.innerHTML = "";
+			const cartIterator = cart.getIterator();
+			let cartTotalPrice = 0;
+			while (true) {
+				const iteratorResult = cartIterator.next();
+				if (iteratorResult.done) {
+					break;
+				}
+				const item = iteratorResult.value;
+				const itemElement = document.createElement("li");
+				itemElement.textContent = item.name + " - $" + item.price.toFixed(2);
+				cartItemsList.appendChild(itemElement);
+				cartTotalPrice += item.price;
+			}
+			const totalPriceElement = document.getElementById("total-price");
+			totalPriceElement.textContent = "Total Price: $" + cartTotalPrice.toFixed(2);
+		}
+	</script>
+</body>
+</html>
